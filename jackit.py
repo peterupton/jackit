@@ -221,6 +221,8 @@ class JackIt(object):
         self.channel_index = 0
         self.debug = debug
         self.devices = {}
+        import resetdevice
+        resetdevice.reset_dongle()
         self.init_radio(disable_lna)
 
     def _debug(self, text):
