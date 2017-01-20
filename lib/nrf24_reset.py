@@ -5,8 +5,8 @@ import usb.util
 try:
 	from fcntl import ioctl
 except ImportError:
-	# Make sure this code does not break other platforms - are there any?
-	ioctl = lambda a,b,c: pass
+	# Make sure this code does not break platforms without ioctl - if any...
+	ioctl = lambda *args: None
 import os
 
 # Thanks to https://github.com/Paufurtado/usbreset.py
