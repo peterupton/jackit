@@ -2,7 +2,11 @@
 
 import usb.core
 import usb.util
-import fcntl
+try:
+	from fcntl import ioctl
+except ImportError:
+	# Make sure this code does not break other platforms - are there any?
+	ioctl = lambda a,b,c: pass
 import os
 
 # Thanks to https://github.com/Paufurtado/usbreset.py
@@ -13,4 +17,7 @@ def reset_radio(index, idVendor=0x1915, idProduct=0x0102):
 	bus = str(device.bus).zfill(3)
 	addr = str(device.address).zfill(3)
 	filename = "/dev/bus/usb/%s/%s" % (bus, addr)
-	fcntl.ioctl(open(filename,"w"), USBDEVFS_RESET, 0)
+	try:
+		ioctl(open(filename,"w"), USBDEVFS_RESET, 0)
+	except IOError:
+		print "Unable to reset device %s" % filename
