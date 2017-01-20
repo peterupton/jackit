@@ -1,9 +1,7 @@
 # Workaround to fix problem where device time outs
-# By your fellow githubian elnerd
 
 import usb.core
 import usb.util
-
 import fcntl
 import os
 
