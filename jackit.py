@@ -568,7 +568,7 @@ def confirmroot():
 @click.option('--layout', default='us', help="Keyboard layout: %s" % ", ".join(keymap.mapping.keys()))
 @click.option('--address', default="", help="Address of device to target attack")
 @click.option('--vendor', default="", help="Vendor of device to target (required when specifying address)")
-@click.option('--reset', default="", help="Reset CrazyPA dongle prior to initalization")
+@click.option('--reset', is_flag=True, help="Reset CrazyPA dongle prior to initalization")
 def cli(debug, script, lowpower, interval, layout, address, vendor, reset):
 
     banner()
@@ -595,10 +595,6 @@ def cli(debug, script, lowpower, interval, layout, address, vendor, reset):
             exit(-1)
         else:
             targeted = True
-    if reset == "":
-        reset = False
-    else:
-        reset = True
         
     if script == "":
         print R + '[!] ' + W + "You must supply a ducky script using --script <filename>"
