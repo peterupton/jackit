@@ -13,6 +13,7 @@ class DuckyParser(object):
         'CTRL':       [0, 1],
         'GUI':        [0, 8],
         'SCROLLLOCK': [71, 0],
+        'NUMLOCK':    [83, 0],
         'ENTER':      [40, 0],
         'F12':        [69, 0],
         'HOME':       [74, 0],
@@ -46,7 +47,17 @@ class DuckyParser(object):
         'F11':        [68, 0],
         'F7':         [64, 0],
         'UP':         [82, 0],
-        'LEFT':       [80, 0]
+        'LEFT':       [80, 0],
+        'CHAR 1':     [89, 4],
+        'CHAR 2':     [90, 4],
+        'CHAR 3':     [91, 4],
+        'CHAR 4':     [92, 4],
+        'CHAR 5':     [93, 4],
+        'CHAR 6':     [94, 4],
+        'CHAR 7':     [95, 4],
+        'CHAR 8':     [96, 4],
+        'CHAR 9':     [97, 4],
+        'CHAR 0':     [98, 4]
     }
 
     blank_entry = {
@@ -281,6 +292,20 @@ class DuckyParser(object):
                 entry = self.blank_entry.copy()
                 entry['char'] = "\n"
                 entry['hid'], entry['mod'] = self.char_to_hid('SPACE')
+                entries.append(entry)
+                
+            elif line.startswith("NUMLOCK"):
+                entry = self.blank_entry.copy()
+                entry['char'] = "\n"
+                entry['hid'], entry['mod'] = self.char_to_hid('NUMLOCK')
+                entries.append(entry)
+
+            elif line.startswith("CHAR"):
+                entry = self.blank_entry.copy()
+                num = line.split(" ", 1)
+                num = "CHAR " + num[1]
+                entry['char'] = num 
+                entry['hid'], entry['mod'] = self.char_to_hid(num)
                 entries.append(entry)
 
             elif len(line) == 0:
