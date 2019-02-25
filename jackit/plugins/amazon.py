@@ -21,37 +21,19 @@ class HID(object):
     def build_frames(self, attack):
         for i in range(0, len(attack)):
             key = attack[i]
+            key['frames'] = []
 
             if i == 0:
-                key['frames'] = [[self.hello[:], 12]]
-            else:
-                key['frames'] = []
+                for _ in range(5):
+                    key['frames'].append([self.frame(), 5])
 
-            if i < len(attack) - 1:
-                next_key = attack[i + 1]
-            else:
-                next_key = None
-            next_key_mod = 0
             if key['hid'] or key['mod']:
-                key['frames'].append([self.frame(key), 12])
-                key['frames'].append([self.keepalive[:], 0])
-                if next_key and key['mod'] == next_key['mod']:
-                    next_key_mod = key['mod']
-                    
-                if not next_key:
-                    key['frames'].append([self.frame(), 0])
-
-                elif key['hid'] == next_key['hid']:
-                    dummykey = {'hid':0, 'mod': next_key_mod}
-                    key['frames'].append([self.frame(dummykey), 0])
-
-                elif next_key['sleep']:
-                    key['frames'].append([self.frame(), 0])
-
+                key['frames'].append([self.frame(key), 5])
+                key['frames'].append([self.frame(), 5])
             elif key['sleep']:
                 count = int(key['sleep']) / 10
                 for i in range(0, int(count)):
-                    key['frames'].append([self.keepalive[:], 10])
+                    key['frames'].append([self.frame(), 10])
 
     @classmethod
     def fingerprint(cls, p):
