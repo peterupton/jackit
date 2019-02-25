@@ -47,23 +47,12 @@ class HID(object):
                 next_key = attack[i + 1]
             else:
                 next_key = None
-            next_key_mod = 0
+
             if key['hid'] or key['mod']:
                 key['frames'].append([self.frame(key), 12])
                 key['frames'].append([self.keepalive[:], 0])
-                if next_key and key['mod'] == next_key['mod']:
-                    next_key_mod = key['mod']
-                    
-                if not next_key:
+                if not next_key or key['hid'] == next_key['hid'] or next_key['sleep']:
                     key['frames'].append([self.frame(), 0])
-
-                elif key['hid'] == next_key['hid']:
-                    dummykey = {'hid':0, 'mod': next_key_mod}
-                    key['frames'].append([self.frame(dummykey), 0])
-
-                elif next_key['sleep']:
-                    key['frames'].append([self.frame(), 0])
-
             elif key['sleep']:
                 count = int(key['sleep']) / 10
                 for i in range(0, int(count)):
