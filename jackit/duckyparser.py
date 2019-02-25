@@ -264,6 +264,24 @@ class DuckyParser(object):
                 entry['char'] = "F12"
                 entry['hid'], entry['mod'] = self.char_to_hid('F12')
                 entries.append(entry)
+                
+            elif line.startswith("TAB"):
+                entry = self.blank_entry.copy()
+                entry['char'] = "\n"
+                entry['hid'], entry['mod'] = self.char_to_hid('TAB')
+                entries.append(entry)
+
+            elif line.startswith("DELETE"):
+                entry = self.blank_entry.copy()
+                entry['char'] = "\n"
+                entry['hid'], entry['mod'] = self.char_to_hid('DELETE')
+                entries.append(entry)
+
+            elif line.startswith("SPACE"):
+                entry = self.blank_entry.copy()
+                entry['char'] = "\n"
+                entry['hid'], entry['mod'] = self.char_to_hid('SPACE')
+                entries.append(entry)
 
             elif len(line) == 0:
                 pass
