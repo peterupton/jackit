@@ -186,6 +186,84 @@ class DuckyParser(object):
                 entry['char'] = "RIGHT"
                 entry['hid'], entry['mod'] = self.char_to_hid('RIGHT')
                 entries.append(entry)
+                
+            elif line.startswith("F1"):
+                entry = self.blank_entry.copy()
+                entry['char'] = "F1"
+                entry['hid'], entry['mod'] = self.char_to_hid('F1')
+                entries.append(entry)
+                                                
+            elif line.startswith("F2"):
+                entry = self.blank_entry.copy()
+                entry['char'] = "F2"
+                entry['hid'], entry['mod'] = self.char_to_hid('F2')
+                entries.append(entry)
+                                
+            elif line.startswith("F3"):
+                entry = self.blank_entry.copy()
+                entry['char'] = "F3"
+                entry['hid'], entry['mod'] = self.char_to_hid('F3')
+                entries.append(entry)
+
+            elif line.startswith("F4"):
+                entry = self.blank_entry.copy()
+                entry['char'] = "F4"
+                entry['hid'], entry['mod'] = self.char_to_hid('F4')
+                entries.append(entry)
+                
+            elif line.startswith("F5"):
+                entry = self.blank_entry.copy()
+                entry['char'] = "F5"
+                entry['hid'], entry['mod'] = self.char_to_hid('F5')
+                entries.append(entry)
+                
+            elif line.startswith("F6"):
+                entry = self.blank_entry.copy()
+                entry['char'] = "F6"
+                entry['hid'], entry['mod'] = self.char_to_hid('F6')
+                entries.append(entry)
+                
+            elif line.startswith("F7"):
+                entry = self.blank_entry.copy()
+                entry['char'] = "F7"
+                entry['hid'], entry['mod'] = self.char_to_hid('F7')
+                entries.append(entry)
+                
+            elif line.startswith("F8"):
+                entry = self.blank_entry.copy()
+                entry['char'] = "F8"
+                entry['hid'], entry['mod'] = self.char_to_hid('F8')
+                entries.append(entry)
+                
+            elif line.startswith("F9"):
+                entry = self.blank_entry.copy()
+                entry['char'] = "F9"
+                entry['hid'], entry['mod'] = self.char_to_hid('F9')
+                entries.append(entry)
+                
+            elif line.startswith("F9"):
+                entry = self.blank_entry.copy()
+                entry['char'] = "F9"
+                entry['hid'], entry['mod'] = self.char_to_hid('F9')
+                entries.append(entry)
+                
+            elif line.startswith("F10"):
+                entry = self.blank_entry.copy()
+                entry['char'] = "F10"
+                entry['hid'], entry['mod'] = self.char_to_hid('F10')
+                entries.append(entry)
+                
+            elif line.startswith("F11"):
+                entry = self.blank_entry.copy()
+                entry['char'] = "F11"
+                entry['hid'], entry['mod'] = self.char_to_hid('F11')
+                entries.append(entry)
+                
+            elif line.startswith("F12"):
+                entry = self.blank_entry.copy()
+                entry['char'] = "F12"
+                entry['hid'], entry['mod'] = self.char_to_hid('F12')
+                entries.append(entry)
 
             elif len(line) == 0:
                 pass
