@@ -198,6 +198,24 @@ class DuckyParser(object):
                 entry['hid'], entry['mod'] = self.char_to_hid('RIGHT')
                 entries.append(entry)
                 
+            elif line.startswith("F10"):
+                entry = self.blank_entry.copy()
+                entry['char'] = "F10"
+                entry['hid'], entry['mod'] = self.char_to_hid('F10')
+                entries.append(entry)
+                
+            elif line.startswith("F11"):
+                entry = self.blank_entry.copy()
+                entry['char'] = "F11"
+                entry['hid'], entry['mod'] = self.char_to_hid('F11')
+                entries.append(entry)
+                
+            elif line.startswith("F12"):
+                entry = self.blank_entry.copy()
+                entry['char'] = "F12"
+                entry['hid'], entry['mod'] = self.char_to_hid('F12')
+                entries.append(entry)
+                
             elif line.startswith("F1"):
                 entry = self.blank_entry.copy()
                 entry['char'] = "F1"
@@ -256,24 +274,6 @@ class DuckyParser(object):
                 entry = self.blank_entry.copy()
                 entry['char'] = "F9"
                 entry['hid'], entry['mod'] = self.char_to_hid('F9')
-                entries.append(entry)
-                
-            elif line.startswith("F10"):
-                entry = self.blank_entry.copy()
-                entry['char'] = "F10"
-                entry['hid'], entry['mod'] = self.char_to_hid('F10')
-                entries.append(entry)
-                
-            elif line.startswith("F11"):
-                entry = self.blank_entry.copy()
-                entry['char'] = "F11"
-                entry['hid'], entry['mod'] = self.char_to_hid('F11')
-                entries.append(entry)
-                
-            elif line.startswith("F12"):
-                entry = self.blank_entry.copy()
-                entry['char'] = "F12"
-                entry['hid'], entry['mod'] = self.char_to_hid('F12')
                 entries.append(entry)
                 
             elif line.startswith("TAB"):
