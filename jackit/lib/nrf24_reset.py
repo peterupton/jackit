@@ -13,8 +13,8 @@ except ImportError:
 USBDEVFS_RESET = ord('U') << (4 * 2) | 20
 
 
-def reset_radio(index, idVendor=0x1915, idProduct=0x0102):
-    device = list(usb.core.find(idVendor=idVendor, idProduct=idProduct, find_all=True))[index]
+def reset_radio(index, idVendor=0x1915):
+    device = list(usb.core.find(idVendor=idVendor, find_all=True))[index]
     bus = str(device.bus).zfill(3)
     addr = str(device.address).zfill(3)
     filename = "/dev/bus/usb/%s/%s" % (bus, addr)
