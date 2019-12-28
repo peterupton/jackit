@@ -133,7 +133,7 @@ def confirm_root():
 @click.option('--all-channels', is_flag=True, help="Send attack to all detected channels")
 @click.option('--keylogging', is_flag=True, help="Log keystrokes for XOR encrypted MS keyboards")
 @click.option('--index', default=0, help="Dongle index to use")
-def cli(debug, script, lowpower, interval, layout, address, vendor, reset, autopwn, all_channels, keylogging):
+def cli(debug, script, lowpower, interval, layout, address, vendor, reset, autopwn, all_channels, keylogging, index):
 
     banner()
     confirm_root()
