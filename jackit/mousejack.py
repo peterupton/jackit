@@ -3,7 +3,7 @@
 from __future__ import print_function, absolute_import
 import time
 from jackit.lib import nrf24, nrf24_reset
-from jackit.plugins import logitech, microsoft, microsoft_enc, amazon
+from jackit.plugins import logitech, microsoft, microsoft_enc, amazon, crazyradio
 
 
 class MouseJack(object):
@@ -15,7 +15,7 @@ class MouseJack(object):
         self.debug = debug
         self.devices = {}
         self.ping = [0x0f, 0x0f, 0x0f, 0x0f]
-        self.plugins = [microsoft, microsoft_enc, logitech, amazon]
+        self.plugins = [microsoft, microsoft_enc, logitech, amazon, crazyradio]
         self.init_radio(disable_lna, reset, index)
 
     def _debug(self, text):
