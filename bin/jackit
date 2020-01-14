@@ -10,6 +10,8 @@ import datetime
 import platform
 import click
 import tabulate
+import ctypes
+from colorama import init
 from jackit import duckyparser
 from jackit import mousejack
 from jackit import keylogger
@@ -27,7 +29,7 @@ B = '\033[34m'  # blue
 P = '\033[35m'  # purple
 C = '\033[36m'  # cyan
 GR = '\033[37m'  # gray
-
+init()
 
 def launch_attacks(jack, targets, attack, use_ping=True):
     for addr_string, target in iteritems(targets):
@@ -114,7 +116,7 @@ def banner():
 
 def confirm_root():
     # make sure we are root
-    if os.getuid() != 0 and platform.system() != 'Darwin':
+    if not ctypes.windll.shell32.IsUserAnAdmin():
         _print_err("ERROR: You need to run as root!")
         _print_err("login as root (su root) or try sudo %s" % sys.argv[0])
         exit(-1)

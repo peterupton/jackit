@@ -18,8 +18,10 @@
 
 from __future__ import print_function
 import usb
+import usb.backend.libusb1
 import logging
 import sys
+import os
 
 # Check pyusb dependency
 try:
@@ -67,7 +69,8 @@ class nrf24:
     # Constructor
     def __init__(self, index=0):
         try:
-            self.dongle = list(usb.core.find(idVendor=0x1915, idProduct=0x0102, find_all=True))[index]
+            self.backend = usb.backend.libusb1.get_backend(find_library=lambda x: os.path.join(os.environ['HOMEDRIVE'], '\\tmp', "libusb-1.0.dll"))
+            self.dongle = list(usb.core.find(backend=self.backend, idVendor=0x1915, idProduct=0x0102, find_all=True))[index]
             self.dongle.set_configuration()
         except usb.core.USBError as ex:
             raise ex
