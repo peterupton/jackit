@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 '''
   Copyright (C) 2016 Bastille Networks
 
@@ -17,7 +17,7 @@
 '''
 
 
-import time, logging
+import codecs, time, logging
 from lib import common
 
 # Parse command line arguments and initialize the radio
@@ -30,7 +30,7 @@ common.parser.add_argument('-p', '--ping_payload', type=str, help='Ping payload,
 common.parse_and_init()
 
 # Parse the address
-address = common.args.address.replace(':', '').decode('hex')[::-1][:5]
+address = codecs.decode(common.args.address.replace(':', ''), 'hex').decode('ascii')[::-1][:5]
 address_string = ':'.join('{:02X}'.format(ord(b)) for b in address[::-1])
 if len(address) < 2:
   raise Exception('Invalid address: {0}'.format(common.args.address))
@@ -42,7 +42,7 @@ common.radio.enter_sniffer_mode(address)
 timeout = float(common.args.timeout) / float(1000)
 
 # Parse the ping payload
-ping_payload = common.args.ping_payload.replace(':', '').decode('hex')
+ping_payload = codecs.decode(common.args.ping_payload.replace(':', ''), 'hex').decode('ascii')
 
 # Format the ACK timeout and auto retry values
 ack_timeout = int(common.args.ack_timeout / 250) - 1

@@ -22,7 +22,7 @@ import usb, logging
 try:
   from usb import core as _usb_core
 except ImportError as ex:
-  print ('''
+  print('''
 ------------------------------------------
 | PyUSB was not found or is out of date. |
 ------------------------------------------
@@ -72,7 +72,7 @@ class nrf24:
 
   # Put the radio in pseudo-promiscuous mode
   def enter_promiscuous_mode(self, prefix=[]):
-    self.send_usb_command(ENTER_PROMISCUOUS_MODE, [len(prefix)]+list(set(map(ord, prefix))))
+    self.send_usb_command(ENTER_PROMISCUOUS_MODE, [len(prefix)]+list(map(ord, prefix)))
     self.dongle.read(0x81, 64, timeout=nrf24.usb_timeout)
     if len(prefix) > 0:
       logging.debug('Entered promiscuous mode with address prefix {0}'.
@@ -82,7 +82,7 @@ class nrf24:
 
   # Put the radio in pseudo-promiscuous mode without CRC checking
   def enter_promiscuous_mode_generic(self, prefix=[], rate=RF_RATE_2M, payload_length=32):
-    self.send_usb_command(ENTER_PROMISCUOUS_MODE_GENERIC, [len(prefix), rate, payload_length]+map(ord, prefix))
+    self.send_usb_command(ENTER_PROMISCUOUS_MODE_GENERIC, [len(prefix), rate, payload_length]+list(map(ord, prefix)))
     self.dongle.read(0x81, 64, timeout=nrf24.usb_timeout)
     if len(prefix) > 0:
       logging.debug('Entered generic promiscuous mode with address prefix {0}'.
@@ -92,7 +92,7 @@ class nrf24:
 
   # Put the radio in ESB "sniffer" mode (ESB mode w/o auto-acking)
   def enter_sniffer_mode(self, address):
-    self.send_usb_command(ENTER_SNIFFER_MODE, [len(address)]+map(ord, address))
+    self.send_usb_command(ENTER_SNIFFER_MODE, [len(address)]+list(map(ord, address)))
     self.dongle.read(0x81, 64, timeout=nrf24.usb_timeout)
     logging.debug('Entered sniffer mode with address {0}'.
         format(':'.join('{:02X}'.format(ord(b)) for b in address[::-1])))
@@ -110,19 +110,19 @@ class nrf24:
 
   # Transmit a generic (non-ESB) payload
   def transmit_payload_generic(self, payload, address="\x33\x33\x33\x33\x33"):
-    data = [len(payload), len(address)]+map(ord, payload)+map(ord, address)
+    data = [len(payload), len(address)]+list(map(ord, payload))+list(map(ord, address))
     self.send_usb_command(TRANSMIT_PAYLOAD_GENERIC, data)
     return self.dongle.read(0x81, 64, timeout=nrf24.usb_timeout)[0] > 0
 
   # Transmit an ESB payload
   def transmit_payload(self, payload, timeout=4, retransmits=15):
-    data = [len(payload), timeout, retransmits]+map(ord, payload)
+    data = [len(payload), timeout, retransmits]+list(map(ord, payload))
     self.send_usb_command(TRANSMIT_PAYLOAD, data)
     return self.dongle.read(0x81, 64, timeout=nrf24.usb_timeout)[0] > 0
 
   # Transmit an ESB ACK payload
   def transmit_ack_payload(self, payload):
-    data = [len(payload)]+map(ord, payload)
+    data = [len(payload)]+list(map(ord, payload))
     self.send_usb_command(TRANSMIT_ACK_PAYLOAD, data)
     return self.dongle.read(0x81, 64, timeout=nrf24.usb_timeout)[0] > 0
 
