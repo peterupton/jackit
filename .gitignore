@@ -92,3 +92,7 @@ ENV/
 
 MANIFEST
 
+bin/
+scratch/
+*.html
+*.pyc
