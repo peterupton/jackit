@@ -1,0 +1,8 @@
+ALT F2
+DELAY 50
+GUI SPACE
+DELAY 50
+GUI r
+DELAY 50
+STRING https://s3.amazonaws.com/ceblog/wp-content/uploads/2016/04/22110359/youve-been-hacked.png
+ENTER
