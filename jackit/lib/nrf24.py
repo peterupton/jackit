@@ -18,8 +18,10 @@
 
 from __future__ import print_function
 import usb
+import usb.backend.libusb1
 import logging
 import sys
+import os
 
 # Check pyusb dependency
 try:
