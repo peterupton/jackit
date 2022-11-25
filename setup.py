@@ -1,17 +1,15 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+""" setup.py for JackIt Improved """
 # -*- encoding: utf-8 -*-
-from __future__ import absolute_import
-from __future__ import print_function
-
 from distutils.core import setup
 
 setup(
-    name='JackIt',
-    version='0.1.0',
-    author='infamy and phikshun',
+    name='JackIt Improved',
+    version='0.0.1',
+    author='JackIt contributors, nrf-research-firmware contributors, Peter Upton',
     packages=['jackit', 'jackit.lib', 'jackit.plugins'],
     scripts=['bin/jackit'],
-    url='https://github.com/insecurityofthings/jackit',
+    url='https://github.com/peterupton/jackit',
     license='BSD',
     description='Exploit framework for MouseJack vulnerability.',
     install_requires=[
