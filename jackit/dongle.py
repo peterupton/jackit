@@ -3,6 +3,7 @@
 
 import os.path
 import subprocess
+from enum import Enum
 from typing import Union
 
 import array
@@ -13,6 +14,12 @@ import time
 # noinspection PyPackageRequirements
 import usb
 
+try:
+    from fcntl import ioctl
+except ImportError:
+    # Make sure this code does not break platforms without ioctl - if any...
+    ioctl = lambda *args: None
+
 
 class Dongle(object):
     """ class for dongle management """
@@ -20,13 +27,15 @@ class Dongle(object):
     usb_timeout: int
     in_bootloader: bool
 
+    usb_timeout = 2500
+
     def __init__(self, dongle_specifier):
         self.dongle_specifier = dongle_specifier
         dongle_list: list[usb.core.Device] = self.list()
         logging.debug("got list of dongles")
         logging.debug(dongle_list)
         self.dongle_device = None
-        self.usb_timeout = 2500
+        self.usb_timeout = Dongle.usb_timeout
 
         if len(dongle_list) == 0:
             logging.warning("did not find any dongles")
@@ -40,6 +49,7 @@ class Dongle(object):
                 if str(dongle.address) == dongle_specifier:
                     self.dongle_device = dongle
                     logging.info("choosing dongle at address " + str(self.dongle_device.address))
+        self.dongle_device.set_configuration()  # start the dongle
         return
 
     @staticmethod
@@ -219,3 +229,145 @@ class Dongle(object):
         while device is None and end_time > time.time():
             device = usb.core.find(idVendor=0x1915, idProduct=0x0101)
         return device
+
+    def reset(self):
+        # Thanks to https://github.com/Paufurtado/usbreset.py
+        USBDEVFS_RESET = ord('U') << (4 * 2) | 20
+
+        bus = str(self.dongle_device.bus).zfill(3)
+        addr = str(self.dongle_device.address).zfill(3)
+        filename = "/dev/bus/usb/%s/%s" % (bus, addr)
+        try:
+            ioctl(open(filename, "w"), USBDEVFS_RESET, 0)
+        except IOError:
+            print("Unable to reset device %s" % filename)
+
+    # USB commands
+    class USBCommand(Enum):
+        """
+        Enum for usb commands to dongles
+        """
+        TRANSMIT_PAYLOAD = 0x04
+        ENTER_SNIFFER_MODE = 0x05
+        ENTER_PROMISCUOUS_MODE = 0x06
+        ENTER_TONE_TEST_MODE = 0x07
+        TRANSMIT_ACK_PAYLOAD = 0x08
+        SET_CHANNEL = 0x09
+        GET_CHANNEL = 0x0A
+        ENABLE_LNA_PA = 0x0B
+        TRANSMIT_PAYLOAD_GENERIC = 0x0C
+        ENTER_PROMISCUOUS_MODE_GENERIC = 0x0D
+        RECEIVE_PAYLOAD = 0x12
+
+    # nRF24LU1+ registers
+    RF_CH = 0x05
+
+    # RF data rates
+    RF_RATE_250K = 0
+    RF_RATE_1M = 1
+    RF_RATE_2M = 2
+
+    # nRF24LU1+ radio dongle
+
+    def enter_promiscuous_mode(self, prefix=[]):
+        """
+        put the radio in pseudo-promiscuous mode
+        """
+        self.send_usb_command(self.USBCommand.ENTER_PROMISCUOUS_MODE.value, [len(prefix)] + prefix)
+        self.dongle_device.read(0x81, 64, timeout=self.usb_timeout)
+        if len(prefix) > 0:
+            logging.debug('Entered promiscuous mode with address prefix {0}'.format(
+                ':'.join('{:02X}'.format(b) for b in prefix)))
+        else:
+            logging.debug('Entered promiscuous mode')
+
+    def enter_promiscuous_mode_generic(self, prefix=[], rate=RF_RATE_2M):
+        """
+        Put the radio in pseudo-promiscuous mode without CRC checking
+        """
+        self.send_usb_command(self.USBCommand.ENTER_PROMISCUOUS_MODE_GENERIC.value, [len(prefix), rate] + prefix)
+        self.dongle_device.read(0x81, 64, timeout=self.usb_timeout)
+        if len(prefix) > 0:
+            logging.debug('Entered generic promiscuous mode with address prefix {0}'.format(
+                ':'.join('{:02X}'.format(b) for b in prefix)))
+        else:
+            logging.debug('Entered promiscuous mode')
+
+    def enter_sniffer_mode(self, address):
+        """
+        Put the radio in ESB "sniffer" mode (ESB mode w/o auto-acking)
+        """
+        self.send_usb_command(self.USBCommand.ENTER_SNIFFER_MODE.value, [len(address)] + address)
+        self.dongle_device.read(0x81, 64, timeout=self.usb_timeout)
+        logging.debug(
+            'Entered sniffer mode with address {0}'.format(':'.join('{:02X}'.format(b) for b in address[::-1])))
+
+    def enter_tone_test_mode(self):
+        """
+        Put the radio into continuous tone (TX) test mode
+        """
+        self.send_usb_command(self.USBCommand.ENTER_TONE_TEST_MODE.value, [])
+        self.dongle_device.read(0x81, 64, timeout=self.usb_timeout)
+        logging.debug('Entered continuous tone test mode')
+
+    def receive_payload(self):
+        """
+        Receive a payload if one is available
+        """
+        self.send_usb_command(self.USBCommand.RECEIVE_PAYLOAD.value, ())
+        return self.dongle_device.read(0x81, 64, timeout=self.usb_timeout)
+
+    def transmit_payload_generic(self, payload, address=[0x33, 0x33, 0x33, 0x33, 0x33]):
+        """
+        Transmit a generic (non-ESB) payload
+        """
+        data = [len(payload), len(address)] + payload + address
+        self.send_usb_command(self.USBCommand.TRANSMIT_PAYLOAD_GENERIC.value, data)
+        return self.dongle_device.read(0x81, 64, timeout=self.usb_timeout)[0] > 0
+
+    def transmit_payload(self, payload, timeout=4, retransmits=15):
+        """
+        Transmit an ESB payload
+        """
+        data = [len(payload), timeout, retransmits] + payload
+        self.send_usb_command(self.USBCommand.TRANSMIT_PAYLOAD.value, data)
+        return self.dongle_device.read(0x81, 64, timeout=self.usb_timeout)[0] > 0
+
+    def transmit_ack_payload(self, payload):
+        """
+        Transmit an ESB ACK payload
+        """
+        data = [len(payload)] + payload
+        self.send_usb_command(self.USBCommand.TRANSMIT_ACK_PAYLOAD.value, data)
+        return self.dongle_device.read(0x81, 64, timeout=self.usb_timeout)[0] > 0
+
+    def set_channel(self, channel):
+        """
+        Set the RF channel
+        """
+        if channel > 125:
+            channel = 125
+        self.send_usb_command(self.USBCommand.SET_CHANNEL.value, [channel])
+        self.dongle_device.read(0x81, 64, timeout=self.usb_timeout)
+        logging.debug('Tuned to {0}'.format(channel))
+
+    def get_channel(self):
+        """
+        Get the current RF channel
+        """
+        self.send_usb_command(self.USBCommand.GET_CHANNEL.value, [])
+        return self.dongle_device.read(0x81, 64, timeout=self.usb_timeout)
+
+    def enable_lna(self):
+        """
+        Enable the LNA (CrazyRadio PA)
+        """
+        self.send_usb_command(self.USBCommand.ENABLE_LNA_PA.value, [])
+        self.dongle_device.read(0x81, 64, timeout=self.usb_timeout)
+
+    def send_usb_command(self, request, data):
+        """
+        Send a USB command
+        """
+        data = [request] + list(data)
+        self.dongle_device.write(0x01, data, timeout=self.usb_timeout)

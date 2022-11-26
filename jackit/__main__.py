@@ -6,7 +6,12 @@ __version__ = 0.1
 
 import argparse
 import logging
+import sys
+import string
+from typing import Union
+
 import dongle
+import attack
 
 
 def banner():
@@ -26,6 +31,31 @@ def banner():
     print("")
 
 
+def unrecognized_action(action):
+    """
+    quits with a message about an unrecognized action
+    """
+    logging.error("unrecognized action: " + action)
+    sys.exit(1)
+
+
+def print_scan_output(channel_index, address, payload):
+    """
+    prints the scan output
+    """
+    print("channel:", channel_index, "address:", attack.Attack.to_display(address), "payload:",
+          attack.Attack.to_display(payload))
+
+
+def address_from_string(address_string: Union[string, None]):
+    """
+    get the address as bytes from string
+    """
+    if address_string == "" or address_string is None:
+        return None
+    return [int(b, 16) for b in address_string.split(':')][::-1]
+
+
 def cli():
     """
     initial entry point in CLI mode
@@ -38,9 +68,14 @@ def cli():
         description="An implementation of the MouseJack vulnerability packaged in an easy to use tool."
     )
 
-    parser.add_argument('-d', '--device', help="the serial number of the dongle to use", default=None)
-    parser.add_argument('object', help="one of 'dongle'")
-    parser.add_argument('action', help="dongle list, dongle info, dongle flash")
+    parser.add_argument('-d', '--device', help="the address of the dongle to use", default=None, type=int)
+    parser.add_argument('-l', '--lna', help="(attack) enable LNA (only works on CrazyRadio dongles)", type=bool)
+    parser.add_argument('-w', '--wait_time',
+                        help="(attack scan) how long to wait on each channel when scanning (dwell time)", default=0.01,
+                        type=float)
+    parser.add_argument('-a', '--address', help='(attack sniff) which address to collect data from')
+    parser.add_argument('object', help="one of 'dongle', 'attack'")
+    parser.add_argument('action', help="dongle (list, info, flash), attack (scan, sniff)")
 
     args = parser.parse_args()
 
@@ -65,17 +100,26 @@ def cli():
         elif args.action == 'flash':
             selected_dongle = dongle.Dongle(args.device)
             selected_dongle.start_flash()
-
         else:
-            raise Exception("Unrecognized Action")
+            unrecognized_action(args.action)
 
-    # example usage drafts:
-    # jim dongle flash nrf
-    # jim dongle flash default
-    # jim dongle backup
-    # jim dongle reset
-    # jim exploit recon
-    # jim capture
+    elif args.object == "attack":
+        this_attack = attack.Attack(dongle.Dongle(args.device), args.lna)
+        if args.action == "scan":
+            this_attack.scan(print_scan_output, dwell_time=args.wait_time)
+        elif args.action == "sniff":
+            this_attack.sniff(address_from_string(args.address), callback=print_sniff_output)
+            logging.error("stub code")
+            # todo stub
+        elif args.action == "inject":
+            logging.error("stub code")
+            # todo stub
+        else:
+            unrecognized_action(args.action)
+
+    else:
+        logging.error(args.object + " is an unrecognized object")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
