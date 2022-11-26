@@ -7,7 +7,6 @@ __version__ = 0.1
 import argparse
 import logging
 import sys
-import string
 from typing import Union
 
 import dongle
@@ -47,13 +46,19 @@ def print_scan_output(channel_index, address, payload):
           attack.Attack.to_display(payload))
 
 
-def address_from_string(address_string: Union[string, None]):
+def address_from_string(address_string: Union[str, None]):
     """
     get the address as bytes from string
     """
-    if address_string == "" or address_string is None:
-        return None
     return [int(b, 16) for b in address_string.split(':')][::-1]
+
+
+def print_sniff_output(address, payload):
+    """
+    prints the sniff output
+    """
+    print("address:", attack.Attack.to_display(address), "payload:",
+          attack.Attack.to_display(payload))
 
 
 def cli():
@@ -74,6 +79,7 @@ def cli():
                         help="(attack scan) how long to wait on each channel when scanning (dwell time)", default=0.01,
                         type=float)
     parser.add_argument('-a', '--address', help='(attack sniff) which address to collect data from')
+    parser.add_argument('-t', '--timeout', help='(attack sniff) timeout when waiting for device')
     parser.add_argument('object', help="one of 'dongle', 'attack'")
     parser.add_argument('action', help="dongle (list, info, flash), attack (scan, sniff)")
 
@@ -108,9 +114,10 @@ def cli():
         if args.action == "scan":
             this_attack.scan(print_scan_output, dwell_time=args.wait_time)
         elif args.action == "sniff":
-            this_attack.sniff(address_from_string(args.address), callback=print_sniff_output)
-            logging.error("stub code")
-            # todo stub
+            timeout = 5.0
+            if args.timeout:
+                timeout = float(args.timeout)
+            this_attack.sniff(address_from_string(args.address), callback=print_sniff_output, timeout=timeout)
         elif args.action == "inject":
             logging.error("stub code")
             # todo stub

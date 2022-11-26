@@ -16,6 +16,7 @@ class Attack(object):
         self.init_radio(enable_lna)
         self.channels = range(2, 84)
         self.channel_index = 0
+        self.ping = [0x0f, 0x0f, 0x0f, 0x0f]
 
     def init_radio(self, lna):
         """
@@ -59,39 +60,36 @@ class Attack(object):
                 value = []
             if len(value) >= 5:
                 address, payload = value[0:5], value[5:]
-                #logging.info("ch: %02d addr: %s packet: %s" % (self.channels[self.channel_index], self.to_display(address), self.to_display(payload)))
-                if callback(self.channel_index, address, payload):  # if we got True from the callback function, then we need to stop
+                # logging.info("ch: %02d addr: %s packet: %s" % (self.channels[self.channel_index], self.to_display(address), self.to_display(payload)))
+                if callback(self.channel_index, address,
+                            payload):  # if we got True from the callback function, then we need to stop
                     return self.channel_index, address, payload
 
-    def sniff(self, address, callback=None):
-        if address is None:
-            self.scan()
-        self.radio.enter_sniffer_mode(address)
+    def sniff(self, address, callback=None, dwell_time: float = 0.1, timeout: float = 5.0):
+        self.current_dongle.enter_sniffer_mode(address)
         self.channel_index = 0
-        self.radio.set_channel(self.channels[self.channel_index])
-        dwell_time = 0.1
+        self.current_dongle.set_channel(self.channels[self.channel_index])
         last_ping = time.time()
         start_time = time.time()
 
         while time.time() - start_time < timeout:
             if len(self.channels) > 1 and time.time() - last_ping > dwell_time:
-                if not self.radio.transmit_payload(self.ping, 1, 1):
+                if not self.current_dongle.transmit_payload(self.ping, 1, 1):
                     success = False
                     for self.channel_index in range(len(self.channels)):
-                        self.radio.set_channel(self.channels[self.channel_index])
-                        if self.radio.transmit_payload(self.ping, 1, 1):
+                        self.current_dongle.set_channel(self.channels[self.channel_index])
+                        if self.current_dongle.transmit_payload(self.ping, 1, 1):
                             last_ping = time.time()
                             success = True
-                            self._debug("Ping success on channel %d" % self.channels[self.channel_index])
+                            logging.info("Ping success on channel %d" % self.channels[self.channel_index])
                             break
 
                     if not success:
-                        self._debug("Ping failed")
+                        logging.info("Ping failed")
                 else:
                     last_ping = time.time()
-
             try:
-                value = self.radio.receive_payload()
+                value = self.current_dongle.receive_payload()
             except RuntimeError:
                 value = [1]
 
@@ -99,11 +97,6 @@ class Attack(object):
                 # hack to keep it on channel
                 last_ping = time.time() + 5.0
                 payload = value[1:]
-                self._debug("ch: %02d addr: %s packet: %s" % (self.channels[self.channel_index], addr_string, self.to_display(payload)))
-                if callback:
-                    callback(address, payload)
-                else:
-                    self.add_device(addr_string, payload)
-
-        return self.devices
-
+                logging.debug("ch: %02d addr: %s packet: %s" % (
+                    self.channels[self.channel_index], self.to_display(address), self.to_display(payload)))
+                callback(address, payload)
