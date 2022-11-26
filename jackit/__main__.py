@@ -31,27 +31,24 @@ def cli():
     initial entry point in CLI mode
     """
 
+    logging.basicConfig(level=logging.INFO)
+
     parser = argparse.ArgumentParser(
         prog="JackItImproved",
         description="An implementation of the MouseJack vulnerability packaged in an easy to use tool."
     )
 
-    parser.add_argument('-v', '--verbose', action='store_true')
-    parser.add_argument('object')
-    parser.add_argument('action')
+    parser.add_argument('-d', '--device', help="the serial number of the dongle to use", default=None)
+    parser.add_argument('object', help="one of 'dongle'")
+    parser.add_argument('action', help="dongle list, dongle info, dongle flash")
 
     args = parser.parse_args()
-    logger = logging.getLogger(__name__)
-    if args.verbose:
-        logger.setLevel(logging.DEBUG)
-
-    logging.debug("verbose mode enabled")
 
     if args.object == 'dongle':
         if args.action == 'list':
             dongles_list = dongle.Dongle.list()
             if len(dongles_list) == 0:
-                print("No dongles found, please check your devices.")
+                print("No compatible dongles found, please check your devices.")
                 return
             if len(dongles_list) == 1:
                 print("Found " + str(len(dongles_list)) + " dongle.")
@@ -59,15 +56,21 @@ def cli():
                 print("Found " + str(len(dongles_list)) + " dongles.")
 
             for dongle_i in dongles_list:
-                print(dongle_i.product + ". serial number:", dongle_i.serial_number)
-                logger.debug("Device details:")
-                logger.debug(dongle_i)
+                print(dongle_i.product, "dongle, at address: ", dongle_i.address)
 
+        elif args.action == "info":
+            selected_dongle = dongle.Dongle(args.device)
+            print(selected_dongle.dongle_device.product, "dongle, at address: ", selected_dongle.dongle_device.address)
+
+        elif args.action == 'flash':
+            selected_dongle = dongle.Dongle(args.device)
+            selected_dongle.start_flash()
+
+        else:
+            raise Exception("Unrecognized Action")
 
     # example usage drafts:
     # jim dongle flash nrf
-    # jim dongle list
-    # jim dongle info
     # jim dongle flash default
     # jim dongle backup
     # jim dongle reset

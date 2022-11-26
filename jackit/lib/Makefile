@@ -10,7 +10,7 @@ VPATH = src/
 OBJS = main.rel usb.rel usb_desc.rel radio.rel
 
 
-SDCC_VER := $(shell $(SDCC) -v | grep -Po "\d\.\d\.\d" | sed "s/\.//g")
+SDCC_VER := $(shell $(SDCC) -v | grep -o "\d\.\d\.\d" | sed "s/\.//g")
 
 all: sdcc bin/ dongle.bin
 

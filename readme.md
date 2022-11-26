@@ -5,3 +5,5 @@ cp -va /opt/homebrew/Cellar/libusb/1.0.26/lib/libusb-1.0.a /usr/local/lib/
 ```
 
 python version must be greater than 3.5
+
+Warning: Only flash one dongle at a time, do not connect multiple dongles while flashing.
