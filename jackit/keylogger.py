@@ -71,7 +71,7 @@ class KeyLogger(object):
         print(G + '[+] ' + W + 'Starting Key Logger...')
         try:
             while True:
-                self.jack.scan(timeout=60, callback=self.attack)
+                self.jack.scan(callback=self.attack)
         except KeyboardInterrupt:
             print('\n ' + R + '(^C)' + O + ' interrupted\n')
             print('[-] Quitting' + W)

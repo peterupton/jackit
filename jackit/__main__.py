@@ -76,12 +76,13 @@ def cli():
     parser.add_argument('-d', '--device', help="the address of the dongle to use", default=None, type=int)
     parser.add_argument('-l', '--lna', help="(attack) enable LNA (only works on CrazyRadio dongles)", type=bool)
     parser.add_argument('-w', '--wait_time',
-                        help="(attack scan) how long to wait on each channel when scanning (dwell time)", default=0.01,
+                        help="(attack scan, sniff, inject) how long to wait on each channel when scanning (dwell time)", default=0.01,
                         type=float)
-    parser.add_argument('-a', '--address', help='(attack sniff) which address to collect data from')
-    parser.add_argument('-t', '--timeout', help='(attack sniff) timeout when waiting for device')
+    parser.add_argument('-a', '--address', help='(attack sniff, inject) which address to collect data from')
+    parser.add_argument('-s', '--string', help='(attack inject) string to inject')
+    parser.add_argument('-t', '--timeout', help='(attack sniff, inject) timeout when waiting for device')
     parser.add_argument('object', help="one of 'dongle', 'attack'")
-    parser.add_argument('action', help="dongle (list, info, flash), attack (scan, sniff)")
+    parser.add_argument('action', help="dongle (list, info, flash), attack (scan, sniff, inject, detect)")
 
     args = parser.parse_args()
 
@@ -119,8 +120,9 @@ def cli():
                 timeout = float(args.timeout)
             this_attack.sniff(address_from_string(args.address), callback=print_sniff_output, timeout=timeout)
         elif args.action == "inject":
-            logging.error("stub code")
-            # todo stub
+            this_attack.inject(address_from_string(args.address), args.string)
+        elif args.action == "detect":
+            this_attack.detect(print)
         else:
             unrecognized_action(args.action)
 

