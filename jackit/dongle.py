@@ -315,7 +315,14 @@ class Dongle(object):
         Receive a payload if one is available
         """
         self.send_usb_command(self.USBCommand.RECEIVE_PAYLOAD.value, ())
-        return self.dongle_device.read(0x81, 64, timeout=self.usb_timeout)
+        # todo catch usb error raise USBError(_strerror(ret), ret, _libusb_errno[ret])
+        # usb.core.USBError: [Errno 5] Input/Output Error
+        try:
+            payload = self.dongle_device.read(0x81, 64, timeout=self.usb_timeout)
+        except usb.core.USBError:
+            logging.error("Could not read from dongle, It looks like the dongle may have been unplugged.")
+            sys.exit(1)
+        return payload
 
     def transmit_payload_generic(self, payload, address=[0x33, 0x33, 0x33, 0x33, 0x33]):
         """
@@ -370,4 +377,8 @@ class Dongle(object):
         Send a USB command
         """
         data = [request] + list(data)
-        self.dongle_device.write(0x01, data, timeout=self.usb_timeout)
+        try:
+            self.dongle_device.write(0x01, data, timeout=self.usb_timeout)
+        except AttributeError:
+            logging.error("Could not write to dongle, please ensure that one is connected with the correct firmware.")
+            sys.exit(1)
