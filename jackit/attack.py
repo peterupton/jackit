@@ -143,6 +143,7 @@ class Attack(object):
         """
         inject a string to an address
         """
+        # todo need to test
         hid = self.get_hid(self.sniff(address, dwell_time=dwell_time, timeout=timeout))
         hid.build_frames(inject_string)  # todo not sure if this code should be here
         for key in inject_string:

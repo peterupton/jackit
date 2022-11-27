@@ -231,9 +231,12 @@ class Dongle(object):
         return device
 
     def reset(self):
+        """
+        reset the dongle's usb device
+        """
         # Thanks to https://github.com/Paufurtado/usbreset.py
+        # noinspection PyPep8Naming,SpellCheckingInspection
         USBDEVFS_RESET = ord('U') << (4 * 2) | 20
-
         bus = str(self.dongle_device.bus).zfill(3)
         addr = str(self.dongle_device.address).zfill(3)
         filename = "/dev/bus/usb/%s/%s" % (bus, addr)
@@ -269,10 +272,12 @@ class Dongle(object):
 
     # nRF24LU1+ radio dongle
 
-    def enter_promiscuous_mode(self, prefix=[]):
+    def enter_promiscuous_mode(self, prefix=None):
         """
         put the radio in pseudo-promiscuous mode
         """
+        if prefix is None:
+            prefix = []
         self.send_usb_command(self.USBCommand.ENTER_PROMISCUOUS_MODE.value, [len(prefix)] + prefix)
         self.dongle_device.read(0x81, 64, timeout=self.usb_timeout)
         if len(prefix) > 0:
@@ -281,10 +286,12 @@ class Dongle(object):
         else:
             logging.debug('Entered promiscuous mode')
 
-    def enter_promiscuous_mode_generic(self, prefix=[], rate=RF_RATE_2M):
+    def enter_promiscuous_mode_generic(self, prefix=None, rate=RF_RATE_2M):
         """
         Put the radio in pseudo-promiscuous mode without CRC checking
         """
+        if prefix is None:
+            prefix = []
         self.send_usb_command(self.USBCommand.ENTER_PROMISCUOUS_MODE_GENERIC.value, [len(prefix), rate] + prefix)
         self.dongle_device.read(0x81, 64, timeout=self.usb_timeout)
         if len(prefix) > 0:
@@ -294,6 +301,7 @@ class Dongle(object):
             logging.debug('Entered promiscuous mode')
 
     def enter_sniffer_mode(self, address):
+        # noinspection SpellCheckingInspection
         """
         Put the radio in ESB "sniffer" mode (ESB mode w/o auto-acking)
         """
@@ -315,8 +323,6 @@ class Dongle(object):
         Receive a payload if one is available
         """
         self.send_usb_command(self.USBCommand.RECEIVE_PAYLOAD.value, ())
-        # todo catch usb error raise USBError(_strerror(ret), ret, _libusb_errno[ret])
-        # usb.core.USBError: [Errno 5] Input/Output Error
         try:
             payload = self.dongle_device.read(0x81, 64, timeout=self.usb_timeout)
         except usb.core.USBError:
@@ -324,10 +330,12 @@ class Dongle(object):
             sys.exit(1)
         return payload
 
-    def transmit_payload_generic(self, payload, address=[0x33, 0x33, 0x33, 0x33, 0x33]):
+    def transmit_payload_generic(self, payload, address=None):
         """
         Transmit a generic (non-ESB) payload
         """
+        if address is None:
+            address = [0x33, 0x33, 0x33, 0x33, 0x33]
         data = [len(payload), len(address)] + payload + address
         self.send_usb_command(self.USBCommand.TRANSMIT_PAYLOAD_GENERIC.value, data)
         return self.dongle_device.read(0x81, 64, timeout=self.usb_timeout)[0] > 0

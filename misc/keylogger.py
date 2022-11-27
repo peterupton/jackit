@@ -3,7 +3,7 @@
 from __future__ import print_function, absolute_import
 from six import iteritems
 import sys
-from jackit import duckyparser
+from misc import duckyparser
 from jackit.plugins import microsoft_enc
 
 # some console colours
