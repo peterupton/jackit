@@ -118,6 +118,9 @@ def cli():
             timeout = 5.0
             if args.timeout:
                 timeout = float(args.timeout)
+            if args.address == None:
+                logging.error("Please specify an address.")
+                sys.exit(1)
             this_attack.sniff(address_from_string(args.address), callback=print_sniff_output, timeout=timeout)
         elif args.action == "inject":
             this_attack.inject(address_from_string(args.address), args.string)
