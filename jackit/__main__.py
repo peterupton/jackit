@@ -83,6 +83,17 @@ def cli():
     parser.add_argument('-t', '--timeout', help='(attack sniff, inject) timeout when waiting for device')
     parser.add_argument('object', help="one of 'dongle', 'attack'")
     parser.add_argument('action', help="dongle (list, info, flash), attack (scan, sniff, inject, detect)")
+    parser.description = """
+    Commands Description: 
+    
+    dongle list # list the dongles present on the system
+    dongle info # get info about a dongle
+    dongle flash # build and flash the NRF research firmware, only do this with one dongle attached
+    attack scan # scan frequencies for target devices
+    attack sniff #  listen for packets from a target device
+    attack inject # inject a string to an address (todo)
+    attack detect  # detect HID devices that are nearby, higher level version of 'attack scan'
+    """
 
     args = parser.parse_args()
 
