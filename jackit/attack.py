@@ -5,11 +5,11 @@ file to hold class for attack management
 import logging
 import os
 import time
-from jackit.plugins import microsoft, microsoft_enc, logitech, amazon
+from plugins import microsoft, logitech, amazon
 
 import dongle
 
-plugins = [microsoft, microsoft_enc, logitech, amazon]
+plugins = [microsoft, logitech, amazon]
 
 
 class Attack(object):
@@ -139,11 +139,16 @@ class Attack(object):
                 return hid.HID
         return None
 
+    def keylog(self, address=None, hid_name=None, callback=None, timeout: float = 5.0, dwell_time: float = 0.1):
+        logging.error("stub code")
+        # todo stub
+
     def inject(self, address, inject_string, dwell_time: float = 0.1, timeout: float = 5.0):
         """
         inject a string to an address
         """
         # todo need to test
+        # todo make address optional
         hid = self.get_hid(self.sniff(address, dwell_time=dwell_time, timeout=timeout))
         hid.build_frames(inject_string)  # todo not sure if this code should be here
         for key in inject_string:
