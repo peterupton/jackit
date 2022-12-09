@@ -5,11 +5,12 @@ file to hold class for attack management
 import logging
 import os
 import time
-from plugins import microsoft, logitech, amazon
+
+from plugins import microsoft, logitech, amazon, microsoft_enc
 
 import dongle
 
-plugins = [microsoft, logitech, amazon]
+plugins = [microsoft, microsoft_enc, logitech, amazon]
 
 
 class Attack(object):

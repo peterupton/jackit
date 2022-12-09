@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function, absolute_import
-import microsoft
 
+from . import microsoft
 
 class HID(microsoft.HID):
     ''' Injection code for MS mouse (encrypted) '''
