@@ -71,6 +71,9 @@ class Attack(object):
                     return self.channel_index, address, payload
 
     def sniff(self, address, callback=None, dwell_time: float = 0.1, timeout: float = 5.0):
+        """
+        callback or return payload from keyboards or mice
+        """
         self.current_dongle.enter_sniffer_mode(address)
         self.channel_index = 0
         self.current_dongle.set_channel(self.channels[self.channel_index])
@@ -90,13 +93,15 @@ class Attack(object):
                             break
 
                     if not success:
-                        logging.info("Ping failed")
+                        pass
+                        #logging.info("Ping failed")
                 else:
                     last_ping = time.time()
             try:
                 value = self.current_dongle.receive_payload()
-            except RuntimeError:
+            except RuntimeError as e:
                 value = [1]
+                logging.info("Could not receive payload: " + str(e))
 
             if value[0] == 0:
                 # hack to keep it on channel
@@ -104,6 +109,7 @@ class Attack(object):
                 payload = value[1:]
                 logging.debug("ch: %02d addr: %s packet: %s" % (
                     self.channels[self.channel_index], self.to_display(address), self.to_display(payload)))
+                logging.info("got payload: " + str(payload))
                 callback(address, payload)
                 if callback is None:
                     return payload

@@ -92,6 +92,7 @@ def cli():
     attack scan # scan frequencies for target devices
     attack sniff #  listen for packets from a target device
     attack inject # inject a string to an address (todo)
+    attack keylog # (todo)
     attack detect  # detect HID devices that are nearby, higher level version of 'attack scan'
     """
 
