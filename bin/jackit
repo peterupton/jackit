@@ -1,0 +1,124 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+from __future__ import print_function, absolute_import
+from six import iteritems
+import os
+import sys
+import time
+import datetime
+import platform
+import click
+import tabulate
+from jackit import duckyparser
+from jackit import mousejack
+from jackit import keylogger
+import argparse
+import logging
+import sys
+from typing import Union
+
+from jackit import dongle
+
+
+# import attack
+
+def unrecognized_action(action):
+    """
+    quits with a message about an unrecognized action
+    """
+    logging.error("unrecognized action: " + action)
+    sys.exit(1)
+
+
+def cli():
+    """
+    initial entry point in CLI mode
+    """
+
+    logging.basicConfig(level=logging.INFO)
+
+    parser = argparse.ArgumentParser(
+        description="An implementation of the MouseJack vulnerability packaged in an easy to use tool."
+    )
+
+    # parser.add_argument('-d', '--device', help="the address of the dongle to use", default=None, type=int)
+    parser.add_argument('-l', '--lna', help="(attack) toggle LNA (only works on CrazyRadio dongles)", type=bool)
+    # parser.add_argument('-w', '--wait_time',
+    #                     help="(attack scan, sniff, inject) how long to wait on each channel when scanning (dwell time)",
+    #                    default=0.01,
+    #                    type=float)
+    # parser.add_argument('-a', '--address', help='(attack sniff, inject) which address to collect data from')
+    # parser.add_argument('-s', '--string', help='(attack inject) string to inject')
+    # parser.add_argument('-t', '--timeout', help='(attack sniff, inject) timeout when waiting for device')
+    parser.add_argument('-v', '--verbose', help='enable verbose (debug) output', type=bool)
+    # parser.add_argument('object', help="one of 'dongle', 'attack'")
+    parser.add_argument('object', help="'attack'")
+    parser.add_argument('action', help="attack sniff")
+    # parser.add_argument('action', help="dongle (list, info, flash), attack (sniff, inject, detect)")
+    parser.description = """
+    Commands Description: 
+
+    dongle list # list the dongles present on the system
+    dongle info # get info about a dongle
+    dongle flash # build and flash the NRF research firmware, only do this with one dongle attached
+    attack scan # scan frequencies for target devices
+    attack sniff #  listen for keys from a nearby device
+    """
+
+    args = parser.parse_args()
+    lowpower = args.lna
+    debug = args.verbose
+    reset = True
+
+    if args.object == 'dongle':
+        if args.action == 'list':
+            dongles_list = dongle.Dongle.list()
+            if len(dongles_list) == 0:
+                print("No compatible dongles found, please check your devices.")
+                return
+            if len(dongles_list) == 1:
+                print("Found " + str(len(dongles_list)) + " dongle.")
+            else:
+                print("Found " + str(len(dongles_list)) + " dongles.")
+
+            for dongle_i in dongles_list:
+                print(dongle_i.product, "dongle, at address: ", dongle_i.address)
+
+        elif args.action == "info":
+            selected_dongle = dongle.Dongle(args.device)
+            print(selected_dongle.dongle_device.product, "dongle, at address: ", selected_dongle.dongle_device.address)
+
+        elif args.action == 'flash':
+            selected_dongle = dongle.Dongle(args.device)
+            selected_dongle.start_flash()
+        else:
+            unrecognized_action(args.action)
+
+    elif args.object == "attack":
+        try:
+            jack = mousejack.MouseJack(lowpower, debug, reset)
+        except Exception as e:
+            logging.error("error using dongle: " + str(e))
+            exit(-1)
+        if args.action == "sniff":
+            k = keylogger.KeyLogger(jack, 'us')
+            k.scan()
+        elif args.action == "inject":
+            logging.error("not yet implemented")
+        elif args.action == "scan":
+            try:
+                while True:
+                    jack.scan()
+            except KeyboardInterrupt:
+                print("caught interrupt, stopping")
+        else:
+            unrecognized_action(args.action)
+
+    else:
+        logging.error(args.object + " is an unrecognized object")
+        sys.exit(1)
+
+
+if __name__ == '__main__':
+    cli()
